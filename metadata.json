@@ -1,0 +1,7 @@
+{
+  "name": "usedream",
+  "description": "free.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

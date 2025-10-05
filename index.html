@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dream Catcher: AI Dream Journal</title>
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#8b5cf6" />
+    <script src="https://cdn.tailwindcss.com"></script>
+  <script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.20.0",
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+    "react": "https://aistudiocdn.com/react@^19.1.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+    "recharts": "https://aistudiocdn.com/recharts@^2.12.7",
+    "d3": "https://cdn.jsdelivr.net/npm/d3@^7.9.0/+esm"
+  }
+}
+</script>
+<style>
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+  }
+  /* Card flip animation for the Oracle */
+  .flip-card-inner {
+    transition: transform 0.8s;
+    transform-style: preserve-3d;
+  }
+  .is-flipped {
+    transform: rotateY(180deg);
+  }
+  .flip-card-front, .flip-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    border-radius: 0.75rem; /* Corresponds to rounded-xl */
+  }
+  .flip-card-back {
+    transform: rotateY(180deg);
+  }
+  
+  /* --- NEW SPLASH SCREEN ANIMATIONS --- */
+  @keyframes cosmic-pulse {
+    0%, 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(192, 132, 252, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 10px 20px rgba(192, 132, 252, 0); }
+    100% { transform: scale(0.95); }
+  }
+  @keyframes draw-line {
+      to { stroke-dashoffset: 0; }
+  }
+  .splash-line {
+      stroke-dasharray: 1000;
+      stroke-dashoffset: 1000;
+      animation: draw-line 2s ease-out forwards;
+  }
+  @keyframes icon-fade-in {
+      from { opacity: 0; transform: scale(0.5); }
+      to { opacity: 1; transform: scale(1); }
+  }
+  .splash-icon {
+      opacity: 0;
+      animation: icon-fade-in 0.8s ease-out forwards;
+  }
+  @keyframes title-glow-fade {
+    from { opacity: 0; text-shadow: 0 0 5px rgba(255,255,255,0); }
+    to { opacity: 1; text-shadow: 0 0 20px rgba(192, 132, 252, 0.7); }
+  }
+
+  /* Print-specific styles for the Synthesis Report */
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+    .printable-area, .printable-area * {
+      visibility: visible;
+    }
+    .printable-area {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      color: black !important;
+    }
+    .no-print {
+      display: none;
+    }
+    .print-text-black {
+        color: black !important;
+    }
+    .print-bg-white {
+        background-color: white !important;
+    }
+  }
+
+  /* --- NEW MODAL ENTRY ANIMATION --- */
+  @keyframes modal-entry {
+    from { opacity: 0; transform: translateY(20px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .animate-modal-entry {
+    animation: modal-entry 0.3s ease-out forwards;
+  }
+
+  /* --- NEW DREAM CATCHER LOADING ANIMATION --- */
+  @keyframes sway-main {
+    0%, 100% { transform: rotate(-3deg); }
+    50% { transform: rotate(3deg); }
+  }
+  @keyframes sway-feather-1 {
+    0%, 100% { transform: rotate(-6deg); }
+    50% { transform: rotate(6deg); }
+  }
+  @keyframes sway-feather-2 {
+    0%, 100% { transform: rotate(-5deg); }
+    50% { transform: rotate(8deg); }
+  }
+  .animate-sway-main {
+    animation: sway-main 3.5s ease-in-out infinite;
+    transform-origin: 50% 5px; /* hang from top center */
+  }
+  .animate-sway-feather-1 {
+    animation: sway-feather-1 3s ease-in-out infinite;
+    transform-origin: top center;
+  }
+  .animate-sway-feather-2 {
+    animation: sway-feather-2 3.8s ease-in-out infinite;
+    transform-origin: top center;
+  }
+
+  /* Animated Mesh Gradient Background */
+  body {
+    background-color: #0a090c;
+  }
+  .mesh-gradient {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    opacity: 0.6;
+    background-image: 
+      radial-gradient(at 20% 25%, hsla(263, 89%, 23%, 1) 0px, transparent 50%),
+      radial-gradient(at 80% 15%, hsla(283, 89%, 25%, 1) 0px, transparent 50%),
+      radial-gradient(at 75% 85%, hsla(190, 95%, 45%, 1) 0px, transparent 50%),
+      radial-gradient(at 20% 90%, hsla(22, 95%, 53%, 1) 0px, transparent 50%);
+    animation: gradient-animation 20s ease infinite;
+    background-size: 200% 200%;
+  }
+
+  @keyframes gradient-animation {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* Improve scrollbar styles */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(168, 85, 247, 0.4); /* purple-500/40 */
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(168, 85, 247, 0.6); /* purple-500/60 */
+  }
+
+  /* --- NEW RESPONSIVE & CONTEXT MENU STYLES --- */
+  .sidebar-overlay {
+      transition: opacity 0.3s ease-in-out;
+  }
+  .mobile-sidebar {
+      transition: transform 0.3s ease-in-out;
+  }
+  .context-menu {
+    animation: fadeIn 0.1s ease-out forwards;
+  }
+
+</style>
+</head>
+  <body class="text-gray-200 antialiased">
+    <div class="mesh-gradient"></div>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
